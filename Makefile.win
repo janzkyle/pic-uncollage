@@ -1,7 +1,7 @@
 # Project: Project2
 # Compiler: Default GCC compiler
 # Compiler Type: MingW 3
-# Makefile created by wxDev-C++ IDE 7.4.2.569 on 09/10/19 12:15
+# Makefile created by wxDev-C++ IDE 7.4.2.569 on 14/10/19 16:00
 
 WXLIBNAME = wxmsw29u
 CPP       = g++.exe
@@ -36,10 +36,10 @@ clean: clean-custom
 $(BIN): $(OBJ)
 	$(LINK) $(LINKOBJ) -o "$(BIN)" $(LIBS) 
 
-Objects/MingW/uncollageApp.o: $(GLOBALDEPS) uncollageApp.cpp uncollageApp.h wx/wx.h wx/wxprec.h uncollageFrm.h wx/wx.h wx/frame.h wx/wxprec.h wx/filedlg.h wx/button.h wx/statbmp.h
+Objects/MingW/uncollageApp.o: $(GLOBALDEPS) uncollageApp.cpp uncollageApp.h uncollageFrm.h
 	$(CPP) -c uncollageApp.cpp -o Objects/MingW/uncollageApp.o $(CXXFLAGS)
 
-Objects/MingW/uncollageFrm.o: $(GLOBALDEPS) uncollageFrm.cpp uncollageFrm.h wx/wx.h wx/frame.h wx/wxprec.h wx/filedlg.h wx/button.h wx/statbmp.h
+Objects/MingW/uncollageFrm.o: $(GLOBALDEPS) uncollageFrm.cpp uncollageFrm.h
 	$(CPP) -c uncollageFrm.cpp -o Objects/MingW/uncollageFrm.o $(CXXFLAGS)
 
 Objects/MingW/uncollage_private.res: Objects/MingW/uncollage_private.rc uncollageApp.rc 

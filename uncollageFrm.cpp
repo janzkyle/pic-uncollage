@@ -9,6 +9,7 @@
 ///------------------------------------------------------------------
 
 #include "uncollageFrm.h"
+#include <cmath>
 
 //Do not add custom headers between
 //Header Include Start and Header Include End
@@ -138,8 +139,42 @@ void uncollageFrm::uploadBtnClick(wxCommandEvent& event)
             gaussImg.SetRGB(row,col,sum,sum,sum);
         }
     }
+    //end gaussian blur
     
-    bitmapDisplay -> SetBitmap(gaussImg);
+    //sobel filter
+    wxImage sobelImg = wxImage(300,300,true);
+    
+    int sobelX[3][3] = {
+        {-1,0,1},
+        {-2,0,2},
+        {-1,0,1}
+    };
+    
+    int sobelY[3][3] = {
+        {-1,-2,1},
+        {0,0,0},
+        {-1,2,1}
+    };
+    
+    int mag, magX, magY;
+    for(int row = 1; row < grayscaledImg.GetHeight() - 1; row++) {
+        for(int col = 1; col < grayscaledImg.GetWidth() - 1; col++) {
+            mag = 0;
+            magX = 0;
+            magY = 0;
+            for(int i = 0; i < 3; i++) {
+                for(int j = 0; j < 3; j++) {
+                    magX += gaussImg.GetRed(row-1+i,col-1+j) * sobelX[i][j];
+                    magY += gaussImg.GetRed(row-1+i,col-1+j) * sobelY[i][j];
+                }
+            }
+            mag = ceil(sqrt(magX*magX + magY*magY));
+            sobelImg.SetRGB(row,col,mag,mag,mag);
+        }
+    }
+    //end sobel filter
+    
+    bitmapDisplay -> SetBitmap(sobelImg);
 }
 
 /*
