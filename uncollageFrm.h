@@ -30,6 +30,7 @@
 #include <wx/button.h>
 #include <wx/statbmp.h>
 ////Header Include End
+#include <vector>
 
 ////Dialog Style Start
 #undef uncollageFrm_STYLE

@@ -9,9 +9,6 @@
 ///------------------------------------------------------------------
 
 #include "uncollageFrm.h"
-#include <bits/stdc++.h> 
-#include <cmath>
-#include <vector>
 
 //Do not add custom headers between
 //Header Include Start and Header Include End
@@ -82,6 +79,111 @@ void uncollageFrm::OnClose(wxCloseEvent& event)
 	Destroy();
 }
 
+void cropHorizontalRecursion(wxImage& image, std::vector<wxImage>& images);
+
+void cropVerticalRecursion(wxImage& image, std::vector<wxImage>& images) {
+    int h = image.GetHeight();
+    int w = image.GetWidth();
+    
+    bool onImage = false;
+    int leftBorder = -1;
+    int rightBorder = -1;
+    
+    unsigned char pixel = 255;
+    for(int col = 0; col < w; col++) {
+        for(int row = 1; row < h; row++) {
+            if(image.GetRed(col, row) != pixel) {
+                onImage = true;
+                break;
+            }
+            if(row == h-1) {
+                onImage = false;
+            }
+        }
+        
+        if(leftBorder == -1 && onImage) {
+            if(col == 0) {
+                leftBorder = 0;
+            }    
+            else {
+                leftBorder = col-1;
+            }
+        }
+        else if(!onImage && leftBorder != -1) {
+            rightBorder = col;
+            break;
+        }
+    }
+    
+    if(rightBorder != -1) {
+        int cropLeftWidth = rightBorder - leftBorder;
+        wxRect leftRect = wxRect(leftBorder, 0, cropLeftWidth, h);
+        wxImage croppedLeftImage = image.GetSubImage(leftRect);
+        
+        int cropRightWidth = w - rightBorder;
+        wxRect rightRect = wxRect(rightBorder, 0, cropRightWidth, h);
+        wxImage croppedRightImage = image.GetSubImage(rightRect);
+
+        cropHorizontalRecursion(croppedLeftImage, images);
+        cropHorizontalRecursion(croppedRightImage, images);
+    }
+    else {
+        images.push_back(image);
+    }
+}
+
+void cropHorizontalRecursion(wxImage& image, std::vector<wxImage>& images) {
+    int h = image.GetHeight();
+    int w = image.GetWidth();
+    
+    bool onImage = false;
+    int topBorder = -1;
+    int bottomBorder = -1;
+    
+    unsigned char pixel = 255;
+    for(int row = 0; row < h; row++) {
+        for(int col = 1; col < w; col++) {
+            unsigned char curPixel = image.GetRed(col, row);
+            if(image.GetRed(col, row) != pixel) {
+                onImage = true;
+                break;
+            }
+            if(col == w-1) {
+                onImage = false;
+            }
+        }
+        
+        if(topBorder == -1 && onImage) {
+            if(row == 0) {
+                topBorder = 0;
+            }
+            else {
+                topBorder = row-1;
+            }
+        }
+        else if(!onImage && topBorder != -1) {
+            bottomBorder = row;
+            break;
+        }
+    }
+    
+    if(bottomBorder != -1) {
+        int cropTopHeight = bottomBorder - topBorder;
+        wxRect topRect = wxRect(0, topBorder, w, cropTopHeight);
+        wxImage croppedTopImage = image.GetSubImage(topRect);
+        
+        int cropBottomHeight = h - bottomBorder;
+        wxRect bottomRect = wxRect(0, bottomBorder, w, cropBottomHeight);
+        wxImage croppedBottomImage = image.GetSubImage(bottomRect);
+
+        cropVerticalRecursion(croppedTopImage, images);
+        cropVerticalRecursion(croppedBottomImage, images);
+    }
+    else {
+        images.push_back(image);
+    }
+}
+
 /*
  * uploadBtnClick
  */
@@ -99,186 +201,11 @@ void uncollageFrm::uploadBtnClick(wxCommandEvent& event)
     int h = img.GetHeight();
     int w = img.GetWidth();
         
-    //grayscaling
-    wxImage grayscaledImg = wxImage(300,300,true);
-    for(int i = 0; i < h; i++)
-    {
-        for (int j = 0; j < w; j++)
-        {
-            unsigned char r = img.GetRed(i,j);
-            unsigned char g = img.GetGreen(i,j);
-            unsigned char b = img.GetBlue(i,j);
-            unsigned char gray = (r*299 + g*587 + b*114)/1000;
-            grayscaledImg.SetRGB(i,j,gray,gray,gray);
-        }
-    }
+    std::vector<wxImage> croppedImgs;
     
-    img = grayscaledImg;
-    //end grayscaling
+    cropVerticalRecursion(img, croppedImgs);
     
-    //gaussian blur
-    wxImage gaussImg = wxImage(300,300,true);
-    
-    /*int kernel[3][3] = {
-        {1, 2, 1},
-        {2, 4, 2},
-        {1, 2, 1}
-    };
-    
-    int sum;
-    for(int row = 1; row < h - 1; row++) {
-        for(int col = 1; col < w - 1; col++) {
-            sum = 0;
-            for(int i = 0; i < 3; i++) {
-                for(int j = 0; j < 3; j++) {
-                    sum += img.GetRed(row-1+i,col-1+j) * kernel[i][j];
-                }
-            }
-            sum /= 16;
-            gaussImg.SetRGB(row,col,sum,sum,sum);
-        }
-    }*/
-    
-    int kernel[5][5] = {
-        {1, 4, 7, 4, 1},
-        {4, 16, 26, 16, 4},
-        {7, 26, 41, 26, 7},
-        {4, 16, 26, 16, 4},
-        {1, 4, 7, 4, 1}
-    };
-    
-    int sum;
-    for(int row = 3; row < h - 3; row++) {
-        for(int col = 3; col < w - 3; col++) {
-            sum = 0;
-            for(int i = 0; i < 5; i++) {
-                for(int j = 0; j < 5; j++) {
-                    sum += img.GetRed(row-1+i,col-1+j) * kernel[i][j];
-                }
-            }
-            sum /= 273;
-            gaussImg.SetRGB(row,col,sum,sum,sum);
-        }
-    }
-    
-    //img = gaussImg;
-    //end gaussian blur
-    
-    
-    //median filter
-    wxImage medianImg = wxImage(300,300,true);
-    int ksize = 7;
-    
-    std::vector<int> window;
-    int windowRow = 0;
-    int windowCol = 0;
-    int median = 0;
-    
-    for(int row = 0; row < h; row++) {
-        for(int col = 0; col < w; col++) {
-            window.clear();
-            windowRow = 0;
-            windowCol = 0;
-            
-            for(int i = 0; i < ksize; i++) {
-                for(int j = 0; j < ksize; j++) {
-                    if(row+i-(ksize/2) < 0) {
-                        windowRow = 0;
-                    }
-                    else if(row+i-(ksize/2) >= h) {
-                        windowRow = h-1;
-                    }
-                    else {
-                        windowRow = row+i-(ksize/2);
-                    }
-                    
-                    if(col+j-(ksize/2) < 0) {
-                        windowCol = 0;
-                    }
-                    else if(col+j-(ksize/2) >= w) {
-                        windowCol = w-1;
-                    }
-                    else {
-                        windowCol = col+j-(ksize/2);
-                    }
-                    window.push_back(img.GetRed(windowRow,windowCol));
-                }
-            }
-            
-            std::sort(window.begin(), window.end());
-            if(ksize % 2 == 0) {
-                median = (window[(ksize/2)-1] + window[(ksize/2)]) / 2;
-            }
-            else {
-                median = window[(ksize/2) - 1];
-            }
-            medianImg.SetRGB(row,col,median,median,median);
-        }
-    }
-    
-    img = medianImg;
-    //end median filter
-    
-    //resizing
-    wxImage resizedImg = wxImage(300,300,true);
-    resizedImg = img.Scale(h/4,w/4);
-    //img = resizedImg.Scale(h,w);
-    //end resizing
-    
-    //sobel filter
-    wxImage sobelImg = wxImage(300,300,true);
-    
-    int sobelX[3][3] = {
-        {-1,0,1},
-        {-2,0,2},
-        {-1,0,1}
-    };
-    
-    int sobelY[3][3] = {
-        {-1,-2,1},
-        {0,0,0},
-        {-1,2,1}
-    };
-    
-    int mag, magX, magY;
-    for(int row = 1; row < h - 1; row++) {
-        for(int col = 1; col < w - 1; col++) {
-            mag = 0;
-            magX = 0;
-            magY = 0;
-            for(int i = 0; i < 3; i++) {
-                for(int j = 0; j < 3; j++) {
-                    magX += img.GetRed(row-1+i,col-1+j) * sobelX[i][j];
-                    magY += img.GetRed(row-1+i,col-1+j) * sobelY[i][j];
-                }
-            }
-            mag = ceil(sqrt(magX*magX + magY*magY));
-            sobelImg.SetRGB(row,col,mag,mag,mag);
-        }
-    }
-    
-    img = sobelImg;
-    //end sobel filter
-    
-    //dilation
-    wxImage dilatedImg = wxImage(300,300,true);
-    int k = 3;
-    
-    for(int row = 0; row < h; row++) {
-        for(int col = 0; col < w; col++) {
-            if(img.GetRed(row,col) > 10) {
-                dilatedImg.SetRGB(row,col,255,255,255);
-            }
-            else {
-                dilatedImg.SetRGB(row,col,0,0,0);
-            }
-        }
-    }
-    
-    //img = dilatedImg;
-    //end dilation
-    
-    bitmapDisplay -> SetBitmap(img);
+    bitmapDisplay -> SetBitmap(croppedImgs[0]);
 }
 
 /*
