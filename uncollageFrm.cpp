@@ -28,6 +28,7 @@ BEGIN_EVENT_TABLE(uncollageFrm,wxFrame)
 	
 	EVT_CLOSE(uncollageFrm::OnClose)
 	EVT_BUTTON(ID_CLEARBTN,uncollageFrm::clearBtnClick)
+	EVT_BUTTON(ID_CROPBTN,uncollageFrm::cropBtnClick)
 	EVT_BUTTON(ID_UPLOADBTN,uncollageFrm::uploadBtnClick)
 END_EVENT_TABLE()
 ////Event Table End
@@ -54,11 +55,15 @@ void uncollageFrm::CreateGUIControls()
 
 	OpenFileDialog =  new wxFileDialog(this, _("Choose a file"), _(""), _(""), _("*.bmp;*gif;*.png;*.jpeg;*.xpm"), wxFD_OPEN);
 
-	saveBtn = new wxButton(this, ID_SAVEBTN, _("Save As ..."), wxPoint(177, 379), wxSize(150, 50), 0, wxDefaultValidator, _("saveBtn"));
+	SaveFileDialog =  new wxFileDialog(this, _("Choose a file"), _(""), _(""), _("*.*"), wxFD_SAVE);
 
-	clearBtn = new wxButton(this, ID_CLEARBTN, _("Clear"), wxPoint(25, 379), wxSize(150, 50), 0, wxDefaultValidator, _("clearBtn"));
+	WxStaticBitmap1 = new wxStaticBitmap(this, ID_WXSTATICBITMAP1, wxNullBitmap, wxPoint(467, 19), wxSize(300, 300) );
+	WxStaticBitmap1->SetForegroundColour(wxColour(_("WHITE")));
+	WxStaticBitmap1->SetBackgroundColour(wxColour(_("WHITE")));
 
-	cropBtn = new wxButton(this, ID_CROPBTN, _("Crop"), wxPoint(177, 327), wxSize(150, 50), 0, wxDefaultValidator, _("cropBtn"));
+	clearBtn = new wxButton(this, ID_CLEARBTN, _("Clear"), wxPoint(97, 379), wxSize(150, 50), 0, wxDefaultValidator, _("clearBtn"));
+
+	cropBtn = new wxButton(this, ID_CROPBTN, _("Crop and Save"), wxPoint(177, 327), wxSize(150, 50), 0, wxDefaultValidator, _("cropBtn"));
 
 	uploadBtn = new wxButton(this, ID_UPLOADBTN, _("Upload"), wxPoint(25, 327), wxSize(150, 50), 0, wxDefaultValidator, _("uploadBtn"));
 
@@ -183,6 +188,11 @@ void cropHorizontalRecursion(wxImage& image, std::vector<wxImage>& images) {
         images.push_back(image);
     }
 }
+void saveImage(std::vector<wxImage>& images) {
+  
+
+}
+
 
 /*
  * uploadBtnClick
@@ -198,14 +208,14 @@ void uncollageFrm::uploadBtnClick(wxCommandEvent& event)
     Upload_Pic.LoadFile(OpenFileDialog -> GetPath(), wxBITMAP_TYPE_ANY);
     
     wxImage img = Upload_Pic.Scale(300,300);
-    int h = img.GetHeight();
-    int w = img.GetWidth();
+    //int h = img.GetHeight();
+    //int w = img.GetWidth();
         
-    std::vector<wxImage> croppedImgs;
+ 
     
-    cropVerticalRecursion(img, croppedImgs);
+    bitmapDisplay -> SetBitmap(img);
     
-    bitmapDisplay -> SetBitmap(croppedImgs[0]);
+
 }
 
 /*
@@ -215,4 +225,32 @@ void uncollageFrm::clearBtnClick(wxCommandEvent& event)
 {
     
     bitmapDisplay -> SetBitmap(wxNullBitmap);
+}
+
+/*
+ * cropBtnClick
+ */              
+void uncollageFrm:: cropBtnClick(wxCommandEvent& event)
+{
+	std::vector<wxImage> croppedImgs;
+    cropVerticalRecursion(Upload_Pic,croppedImgs);
+    	wxFileDialog *SaveFileDialog = new wxFileDialog(this, _("Save Image"), _(""), _(""), _("BMP file (*.bmp)|*.bmp|GIF file (*.gif)|*.gif|JPEG file (*.jpg)|*.jpg|PNG file (*.png)|*.png|TIFF file (*.tif)|*.tif"), wxFD_SAVE);
+    for (int i = 0; i<croppedImgs.size(); i++)
+        {                 
+	       if (SaveFileDialog->ShowModal() == wxID_OK)
+        	{  
+                wxString savePath = SaveFileDialog->GetPath();
+		        wxImage currentImage = croppedImgs[i]; 
+		        if (currentImage.IsOk())
+		        {
+    		      currentImage.SaveFile(savePath); // File type depends on extension
+                }
+            }
+            else 
+            {
+                SaveFileDialog->Close();
+            }
+        }
+    
+    SaveFileDialog->Destroy();
 }

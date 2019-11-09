@@ -47,6 +47,7 @@ class uncollageFrm : public wxFrame
 		virtual ~uncollageFrm();
 		void uploadBtnClick(wxCommandEvent& event);
 		void clearBtnClick(wxCommandEvent& event);
+		void cropBtnClick(wxCommandEvent& event);
 		
 	private:
 		//Do not add custom control declarations between
@@ -54,7 +55,8 @@ class uncollageFrm : public wxFrame
 		//wxDev-C++ will remove them. Add custom code after the block.
 		////GUI Control Declaration Start
 		wxFileDialog *OpenFileDialog;
-		wxButton *saveBtn;
+		wxFileDialog *SaveFileDialog;
+		wxStaticBitmap *WxStaticBitmap1;
 		wxButton *clearBtn;
 		wxButton *cropBtn;
 		wxButton *uploadBtn;
@@ -71,7 +73,7 @@ class uncollageFrm : public wxFrame
 		enum
 		{
 			////GUI Enum Control ID Start
-			ID_SAVEBTN = 1006,
+			ID_WXSTATICBITMAP1 = 1008,
 			ID_CLEARBTN = 1005,
 			ID_CROPBTN = 1004,
 			ID_UPLOADBTN = 1003,
