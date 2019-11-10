@@ -1,7 +1,7 @@
 # Project: Project2
 # Compiler: Default GCC compiler
 # Compiler Type: MingW 3
-# Makefile created by wxDev-C++ IDE 7.4.2.569 on 10/11/19 02:55
+# Makefile created by wxDev-C++ IDE 7.4.2.569 on 10/11/19 21:56
 
 WXLIBNAME = wxmsw29u
 CPP       = g++.exe

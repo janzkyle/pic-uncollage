@@ -94,8 +94,9 @@ void cropVerticalRecursion(wxImage& image, std::vector<wxImage>& images) {
     int leftBorder = -1;
     int rightBorder = -1;
     
-    unsigned char pixel = 255;
+    //unsigned char pixel = 255;
     for(int col = 0; col < w; col++) {
+        unsigned char pixel = image.GetRed(col, 0);
         for(int row = 1; row < h; row++) {
             if(image.GetRed(col, row) != pixel) {
                 onImage = true;
@@ -132,7 +133,7 @@ void cropVerticalRecursion(wxImage& image, std::vector<wxImage>& images) {
         cropHorizontalRecursion(croppedLeftImage, images);
         cropHorizontalRecursion(croppedRightImage, images);
     }
-    else {
+    else if(leftBorder != -1) {
         images.push_back(image);
     }
 }
@@ -145,8 +146,9 @@ void cropHorizontalRecursion(wxImage& image, std::vector<wxImage>& images) {
     int topBorder = -1;
     int bottomBorder = -1;
     
-    unsigned char pixel = 255;
+    //unsigned char pixel = 255;
     for(int row = 0; row < h; row++) {
+        unsigned char pixel = image.GetRed(0, row);
         for(int col = 1; col < w; col++) {
             unsigned char curPixel = image.GetRed(col, row);
             if(image.GetRed(col, row) != pixel) {
@@ -184,7 +186,7 @@ void cropHorizontalRecursion(wxImage& image, std::vector<wxImage>& images) {
         cropVerticalRecursion(croppedTopImage, images);
         cropVerticalRecursion(croppedBottomImage, images);
     }
-    else {
+    else if(topBorder != -1) {
         images.push_back(image);
     }
 }
