@@ -84,9 +84,9 @@ void uncollageFrm::OnClose(wxCloseEvent& event)
 	Destroy();
 }
 
-void cropHorizontalRecursion(wxImage& image, std::vector<wxImage>& images);
+void cropHorizontalRecursion(wxImage& image, std::vector<wxImage>& images, bool cropAgain=false);
 
-void cropVerticalRecursion(wxImage& image, std::vector<wxImage>& images) {
+void cropVerticalRecursion(wxImage& image, std::vector<wxImage>& images, bool cropAgain=false) {
     int h = image.GetHeight();
     int w = image.GetWidth();
     
@@ -94,11 +94,12 @@ void cropVerticalRecursion(wxImage& image, std::vector<wxImage>& images) {
     int leftBorder = -1;
     int rightBorder = -1;
     
-    //unsigned char pixel = 255;
     for(int col = 0; col < w; col++) {
-        unsigned char pixel = image.GetRed(col, 0);
+        unsigned char rPixel = image.GetRed(col, 0);
+        unsigned char gPixel = image.GetGreen(col, 0);
+        unsigned char bPixel = image.GetBlue(col, 0);
         for(int row = 1; row < h; row++) {
-            if(image.GetRed(col, row) != pixel) {
+            if(image.GetRed(col, row) != rPixel || image.GetGreen(col, row) != gPixel || image.GetBlue(col, row) != bPixel) {
                 onImage = true;
                 break;
             }
@@ -108,12 +109,7 @@ void cropVerticalRecursion(wxImage& image, std::vector<wxImage>& images) {
         }
         
         if(leftBorder == -1 && onImage) {
-            if(col == 0) {
-                leftBorder = 0;
-            }    
-            else {
-                leftBorder = col-1;
-            }
+            leftBorder = col;
         }
         else if(!onImage && leftBorder != -1) {
             rightBorder = col;
@@ -131,14 +127,19 @@ void cropVerticalRecursion(wxImage& image, std::vector<wxImage>& images) {
         wxImage croppedRightImage = image.GetSubImage(rightRect);
 
         cropHorizontalRecursion(croppedLeftImage, images);
-        cropHorizontalRecursion(croppedRightImage, images);
+        cropHorizontalRecursion(croppedRightImage, images, true);
     }
     else if(leftBorder != -1) {
-        images.push_back(image);
+        if(cropAgain) {
+            cropHorizontalRecursion(image, images);
+        }
+        else {
+            images.push_back(image);
+        }
     }
 }
 
-void cropHorizontalRecursion(wxImage& image, std::vector<wxImage>& images) {
+void cropHorizontalRecursion(wxImage& image, std::vector<wxImage>& images, bool cropAgain) {
     int h = image.GetHeight();
     int w = image.GetWidth();
     
@@ -146,12 +147,12 @@ void cropHorizontalRecursion(wxImage& image, std::vector<wxImage>& images) {
     int topBorder = -1;
     int bottomBorder = -1;
     
-    //unsigned char pixel = 255;
     for(int row = 0; row < h; row++) {
-        unsigned char pixel = image.GetRed(0, row);
+        unsigned char rPixel = image.GetRed(0, row);
+        unsigned char gPixel = image.GetGreen(0, row);
+        unsigned char bPixel = image.GetBlue(0, row);
         for(int col = 1; col < w; col++) {
-            unsigned char curPixel = image.GetRed(col, row);
-            if(image.GetRed(col, row) != pixel) {
+            if(image.GetRed(col, row) != rPixel || image.GetGreen(col, row) != gPixel || image.GetBlue(col, row) != bPixel) {
                 onImage = true;
                 break;
             }
@@ -161,12 +162,7 @@ void cropHorizontalRecursion(wxImage& image, std::vector<wxImage>& images) {
         }
         
         if(topBorder == -1 && onImage) {
-            if(row == 0) {
-                topBorder = 0;
-            }
-            else {
-                topBorder = row-1;
-            }
+            topBorder = row;
         }
         else if(!onImage && topBorder != -1) {
             bottomBorder = row;
@@ -184,10 +180,15 @@ void cropHorizontalRecursion(wxImage& image, std::vector<wxImage>& images) {
         wxImage croppedBottomImage = image.GetSubImage(bottomRect);
 
         cropVerticalRecursion(croppedTopImage, images);
-        cropVerticalRecursion(croppedBottomImage, images);
+        cropVerticalRecursion(croppedBottomImage, images, true);
     }
     else if(topBorder != -1) {
-        images.push_back(image);
+        if(cropAgain) {
+            cropVerticalRecursion(image, images);
+        }
+        else {
+            images.push_back(image);
+        }
     }
 }
 void saveImage(std::vector<wxImage>& images) {
