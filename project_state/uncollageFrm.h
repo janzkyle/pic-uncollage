@@ -91,4 +91,7 @@ class uncollageFrm : public wxFrame
 		void CreateGUIControls();
 };
 
+void cropHorizontalRecursion(wxImage& image, std::vector<wxImage>& images, bool cropAgain=false);
+void cropVerticalRecursion(wxImage& image, std::vector<wxImage>& images, bool cropAgain=false);
+
 #endif

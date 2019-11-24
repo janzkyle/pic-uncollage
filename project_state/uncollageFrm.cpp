@@ -88,9 +88,25 @@ void uncollageFrm::OnClose(wxCloseEvent& event)
 	Destroy();
 }
 
-void cropHorizontalRecursion(wxImage& image, std::vector<wxImage>& images, bool cropAgain=false);
+bool rgbWithinRange(unsigned char rBasis, 
+                    unsigned char gBasis, 
+                    unsigned char bBasis, 
+                    unsigned char rCurrent, 
+                    unsigned char gCurrent, 
+                    unsigned char bCurrent,
+                    int threshold) {
+    if(rBasis - threshold <= rCurrent && rBasis + threshold >= rCurrent) {
+        if(gBasis - threshold <= gCurrent && gBasis + threshold >= gCurrent) {
+            if(bBasis - threshold <= bCurrent && bBasis + threshold >= bCurrent) {
+                return true;
+            }
+        }
+    }
+    
+    return false;
+}
 
-void cropVerticalRecursion(wxImage& image, std::vector<wxImage>& images, bool cropAgain=false) {
+void cropVerticalRecursion(wxImage& image, std::vector<wxImage>& images, bool cropAgain) {
     int h = image.GetHeight();
     int w = image.GetWidth();
     
@@ -103,7 +119,7 @@ void cropVerticalRecursion(wxImage& image, std::vector<wxImage>& images, bool cr
         unsigned char gPixel = image.GetGreen(col, 0);
         unsigned char bPixel = image.GetBlue(col, 0);
         for(int row = 1; row < h; row++) {
-            if(image.GetRed(col, row) != rPixel || image.GetGreen(col, row) != gPixel || image.GetBlue(col, row) != bPixel) {
+            if(!rgbWithinRange(rPixel, gPixel, bPixel, image.GetRed(col, row), image.GetGreen(col, row), image.GetBlue(col, row), 5)) {
                 onImage = true;
                 break;
             }
@@ -156,7 +172,7 @@ void cropHorizontalRecursion(wxImage& image, std::vector<wxImage>& images, bool 
         unsigned char gPixel = image.GetGreen(0, row);
         unsigned char bPixel = image.GetBlue(0, row);
         for(int col = 1; col < w; col++) {
-            if(image.GetRed(col, row) != rPixel || image.GetGreen(col, row) != gPixel || image.GetBlue(col, row) != bPixel) {
+            if(!rgbWithinRange(rPixel, gPixel, bPixel, image.GetRed(col, row), image.GetGreen(col, row), image.GetBlue(col, row), 5)) {
                 onImage = true;
                 break;
             }
