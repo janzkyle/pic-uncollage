@@ -54,12 +54,11 @@ void uncollageFrm::CreateGUIControls()
 
 	wxInitAllImageHandlers();   //Initialize graphic format handlers
 
-	previewText = new wxStaticText(this, ID_PREVIEWTEXT, _("Cropped Image Preview"), wxPoint(501, 323), wxDefaultSize, 0, _("previewText"));
-    previewText ->SetFont(wxFont(16, wxSWISS, wxNORMAL, wxNORMAL, false, _("Siemens AD Sans")));
-    	
 	OpenFileDialog =  new wxFileDialog(this, _("Choose a file"), _(""), _(""), _("*.bmp;*gif;*.png;*.jpeg;*.xpm"), wxFD_OPEN);
 
 	SaveFileDialog =  new wxFileDialog(this, _("Choose a file"), _(""), _(""), _("*.*"), wxFD_SAVE);
+
+	previewText = new wxStaticText(this, ID_PREVIEWTEXT, _("Cropped Image Preview"), wxPoint(501, 323), wxDefaultSize, 0, _("previewText"));
 
 	bitmapView = new wxStaticBitmap(this, ID_BITMAPVIEW, wxNullBitmap, wxPoint(467, 19), wxSize(300, 300) );
 	bitmapView->SetForegroundColour(wxColour(_("WHITE")));
@@ -88,13 +87,14 @@ void uncollageFrm::OnClose(wxCloseEvent& event)
 	Destroy();
 }
 
-bool rgbWithinRange(unsigned char rBasis, 
-                    unsigned char gBasis, 
-                    unsigned char bBasis, 
-                    unsigned char rCurrent, 
-                    unsigned char gCurrent, 
-                    unsigned char bCurrent,
-                    int threshold) {
+bool rgbWithinRange(
+    unsigned char rBasis, 
+    unsigned char gBasis, 
+    unsigned char bBasis, 
+    unsigned char rCurrent, 
+    unsigned char gCurrent, 
+    unsigned char bCurrent,
+    int threshold) {
     if(rBasis - threshold <= rCurrent && rBasis + threshold >= rCurrent) {
         if(gBasis - threshold <= gCurrent && gBasis + threshold >= gCurrent) {
             if(bBasis - threshold <= bCurrent && bBasis + threshold >= bCurrent) {
@@ -106,7 +106,13 @@ bool rgbWithinRange(unsigned char rBasis,
     return false;
 }
 
-void cropVerticalRecursion(wxImage& image, std::vector<wxImage>& images, bool cropAgain) {
+void cropVerticalRecursion(
+    wxImage& image, 
+    std::vector<wxImage>& images, 
+    unsigned char rBorder, 
+    unsigned char gBorder, 
+    unsigned char bBorder, 
+    bool cropAgain) {
     int h = image.GetHeight();
     int w = image.GetWidth();
     
@@ -115,11 +121,11 @@ void cropVerticalRecursion(wxImage& image, std::vector<wxImage>& images, bool cr
     int rightBorder = -1;
     
     for(int col = 0; col < w; col++) {
-        unsigned char rPixel = image.GetRed(col, 0);
-        unsigned char gPixel = image.GetGreen(col, 0);
-        unsigned char bPixel = image.GetBlue(col, 0);
         for(int row = 1; row < h; row++) {
-            if(!rgbWithinRange(rPixel, gPixel, bPixel, image.GetRed(col, row), image.GetGreen(col, row), image.GetBlue(col, row), 5)) {
+            unsigned char rPixel = image.GetRed(col, row);
+            unsigned char gPixel = image.GetGreen(col, row);
+            unsigned char bPixel = image.GetBlue(col, row);
+            if(!rgbWithinRange(rBorder, gBorder, bBorder, rPixel, gPixel, bPixel)) {
                 onImage = true;
                 break;
             }
@@ -146,12 +152,12 @@ void cropVerticalRecursion(wxImage& image, std::vector<wxImage>& images, bool cr
         wxRect rightRect = wxRect(rightBorder, 0, cropRightWidth, h);
         wxImage croppedRightImage = image.GetSubImage(rightRect);
 
-        cropHorizontalRecursion(croppedLeftImage, images);
-        cropHorizontalRecursion(croppedRightImage, images, true);
+        cropHorizontalRecursion(croppedLeftImage, images, rBorder, gBorder, bBorder);
+        cropHorizontalRecursion(croppedRightImage, images, rBorder, gBorder, bBorder, true);
     }
     else if(leftBorder != -1) {
         if(cropAgain) {
-            cropHorizontalRecursion(image, images);
+            cropHorizontalRecursion(image, images, rBorder, gBorder, bBorder);
         }
         else {
             images.push_back(image);
@@ -159,7 +165,13 @@ void cropVerticalRecursion(wxImage& image, std::vector<wxImage>& images, bool cr
     }
 }
 
-void cropHorizontalRecursion(wxImage& image, std::vector<wxImage>& images, bool cropAgain) {
+void cropHorizontalRecursion(
+    wxImage& image, 
+    std::vector<wxImage>& images, 
+    unsigned char rBorder, 
+    unsigned char gBorder, 
+    unsigned char bBorder, 
+    bool cropAgain) {
     int h = image.GetHeight();
     int w = image.GetWidth();
     
@@ -168,11 +180,11 @@ void cropHorizontalRecursion(wxImage& image, std::vector<wxImage>& images, bool 
     int bottomBorder = -1;
     
     for(int row = 0; row < h; row++) {
-        unsigned char rPixel = image.GetRed(0, row);
-        unsigned char gPixel = image.GetGreen(0, row);
-        unsigned char bPixel = image.GetBlue(0, row);
         for(int col = 1; col < w; col++) {
-            if(!rgbWithinRange(rPixel, gPixel, bPixel, image.GetRed(col, row), image.GetGreen(col, row), image.GetBlue(col, row), 5)) {
+            unsigned char rPixel = image.GetRed(col, row);
+            unsigned char gPixel = image.GetGreen(col, row);
+            unsigned char bPixel = image.GetBlue(col, row);
+            if(!rgbWithinRange(rBorder, gBorder, bBorder, rPixel, gPixel, bPixel)) {
                 onImage = true;
                 break;
             }
@@ -199,12 +211,12 @@ void cropHorizontalRecursion(wxImage& image, std::vector<wxImage>& images, bool 
         wxRect bottomRect = wxRect(0, bottomBorder, w, cropBottomHeight);
         wxImage croppedBottomImage = image.GetSubImage(bottomRect);
 
-        cropVerticalRecursion(croppedTopImage, images);
-        cropVerticalRecursion(croppedBottomImage, images, true);
+        cropVerticalRecursion(croppedTopImage, images, rBorder, gBorder, bBorder);
+        cropVerticalRecursion(croppedBottomImage, images, rBorder, gBorder, bBorder, true);
     }
     else if(topBorder != -1) {
         if(cropAgain) {
-            cropVerticalRecursion(image, images);
+            cropVerticalRecursion(image, images, rBorder, gBorder, bBorder);
         }
         else {
             images.push_back(image);
@@ -245,7 +257,11 @@ void uncollageFrm::clearBtnClick(wxCommandEvent& event)
 void uncollageFrm:: cropBtnClick(wxCommandEvent& event)
 {
 	std::vector<wxImage> croppedImgs; 
-    cropVerticalRecursion(Upload_Pic,croppedImgs, true);
+	unsigned char rBorder = Upload_Pic.GetRed(0,0);
+	unsigned char gBorder = Upload_Pic.GetGreen(0,0);
+	unsigned char bBorder = Upload_Pic.GetBlue(0,0);
+	
+    cropVerticalRecursion(Upload_Pic,croppedImgs, rBorder, gBorder, bBorder, true);
     wxFileDialog *SaveFileDialog = new wxFileDialog(this, _("Save Image"), _(""), _(""), _("BMP file (*.bmp)|*.bmp|GIF file (*.gif)|*.gif|JPEG file (*.jpg)|*.jpg|PNG file (*.png)|*.png|TIFF file (*.tif)|*.tif"), wxFD_SAVE);
     for (int i = 0; i<croppedImgs.size(); i++)
         {

@@ -26,8 +26,8 @@
 //Header Include Start and Header Include End.
 //wxDev-C++ designer will remove them. Add custom headers after the block.
 ////Header Include Start
-#include <wx/stattext.h>
 #include <wx/filedlg.h>
+#include <wx/stattext.h>
 #include <wx/button.h>
 #include <wx/statbmp.h>
 ////Header Include End
@@ -56,9 +56,9 @@ class uncollageFrm : public wxFrame
 		//GUI Control Declaration Start and GUI Control Declaration End.
 		//wxDev-C++ will remove them. Add custom code after the block.
 		////GUI Control Declaration Start
-		wxStaticText *previewText;
 		wxFileDialog *OpenFileDialog;
 		wxFileDialog *SaveFileDialog;
+		wxStaticText *previewText;
 		wxStaticBitmap *bitmapView;
 		wxButton *clearBtn;
 		wxButton *cropBtn;
@@ -91,7 +91,30 @@ class uncollageFrm : public wxFrame
 		void CreateGUIControls();
 };
 
-void cropHorizontalRecursion(wxImage& image, std::vector<wxImage>& images, bool cropAgain=false);
-void cropVerticalRecursion(wxImage& image, std::vector<wxImage>& images, bool cropAgain=false);
+bool rgbWithinRange(
+    unsigned char rBasis, 
+    unsigned char gBasis, 
+    unsigned char bBasis, 
+    unsigned char rCurrent, 
+    unsigned char gCurrent, 
+    unsigned char bCurrent,
+    int threshold=20
+);
+void cropHorizontalRecursion(
+    wxImage& image, 
+    std::vector<wxImage>& images, 
+    unsigned char rBorder, 
+    unsigned char gBorder, 
+    unsigned char bBorder, 
+    bool cropAgain=false
+);
+void cropVerticalRecursion(
+    wxImage& image, 
+    std::vector<wxImage>& images, 
+    unsigned char rBorder, 
+    unsigned char gBorder, 
+    unsigned char bBorder, 
+    bool cropAgain=false
+);
 
 #endif
