@@ -27,6 +27,7 @@
 //wxDev-C++ designer will remove them. Add custom headers after the block.
 ////Header Include Start
 #include <wx/filedlg.h>
+#include <wx/bmpbuttn.h>
 #include <wx/stattext.h>
 #include <wx/button.h>
 #include <wx/statbmp.h>
@@ -50,22 +51,33 @@ class uncollageFrm : public wxFrame
 		void clearBtnClick(wxCommandEvent& event);
 		void cropBtnClick(wxCommandEvent& event);
 		void uncollageFrmActivate(wxActivateEvent& event);
+		void saveBtnClick(wxCommandEvent& event);
+		void loadBtnClick(wxCommandEvent& event);
+		void leftBtnClick(wxCommandEvent& event);
+		void rightBtnClick(wxCommandEvent& event);
 		
 	private:
 		//Do not add custom control declarations between
 		//GUI Control Declaration Start and GUI Control Declaration End.
 		//wxDev-C++ will remove them. Add custom code after the block.
 		////GUI Control Declaration Start
-		wxFileDialog *OpenFileDialog;
 		wxFileDialog *SaveFileDialog;
-		wxStaticText *previewText;
+		wxFileDialog *OpenFileDialog;
+		wxBitmapButton *rightBtn;
+		wxBitmapButton *leftBtn;
+		wxStaticText *uploadImgLabel;
+		wxButton *saveBtn;
+		wxStaticText *croppedImgLabel;
 		wxStaticBitmap *bitmapView;
 		wxButton *clearBtn;
 		wxButton *cropBtn;
-		wxButton *uploadBtn;
+		wxButton *loadBtn;
 		wxStaticBitmap *bitmapDisplay;
 		////GUI Control Declaration End
 		wxImage Upload_Pic;
+		std::vector<wxImage> croppedImgs;
+		wxImage scaledImg; 
+		int index;
 		
 		
 	private:
@@ -76,11 +88,15 @@ class uncollageFrm : public wxFrame
 		enum
 		{
 			////GUI Enum Control ID Start
-			ID_PREVIEWTEXT = 1009,
+			ID_RIGHTBTN = 1014,
+			ID_LEFTBTN = 1013,
+			ID_UPLOADIMGLABEL = 1011,
+			ID_SAVEBTN = 1010,
+			ID_CROPPEDIMGLABEL = 1009,
 			ID_BITMAPVIEW = 1008,
 			ID_CLEARBTN = 1005,
 			ID_CROPBTN = 1004,
-			ID_UPLOADBTN = 1003,
+			ID_LOADBTN = 1003,
 			ID_BITMAPDISPLAY = 1001,
 			////GUI Enum Control ID End
 			ID_DUMMY_VALUE_ //don't remove this value unless you have other enum values
@@ -116,5 +132,11 @@ void cropVerticalRecursion(
     unsigned char bBorder, 
     bool cropAgain=false
 );
+void scaleImage (
+    std::vector<wxImage>& images, 
+    wxImage &image, 
+    int i
+);
+
 
 #endif

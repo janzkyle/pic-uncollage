@@ -1,7 +1,7 @@
 # Project: Project2
 # Compiler: Default GCC compiler
 # Compiler Type: MingW 3
-# Makefile created by wxDev-C++ IDE 7.4.2.569 on 24/11/19 15:33
+# Makefile created by wxDev-C++ IDE 7.4.2.569 on 29/11/19 00:47
 
 WXLIBNAME = wxmsw29u
 CPP       = g++.exe
@@ -39,7 +39,7 @@ $(BIN): $(OBJ)
 Objects/MingW/uncollageApp.o: $(GLOBALDEPS) uncollageApp.cpp uncollageApp.h uncollageFrm.h
 	$(CPP) -c uncollageApp.cpp -o Objects/MingW/uncollageApp.o $(CXXFLAGS)
 
-Objects/MingW/uncollageFrm.o: $(GLOBALDEPS) uncollageFrm.cpp uncollageFrm.h
+Objects/MingW/uncollageFrm.o: $(GLOBALDEPS) uncollageFrm.cpp uncollageFrm.h Images/uncollageFrm_rightBtn_XPM.xpm Images/uncollageFrm_leftBtn_XPM.xpm
 	$(CPP) -c uncollageFrm.cpp -o Objects/MingW/uncollageFrm.o $(CXXFLAGS)
 
 Objects/MingW/uncollage_private.res: Objects/MingW/uncollage_private.rc uncollageApp.rc 

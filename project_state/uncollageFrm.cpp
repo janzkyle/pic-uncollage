@@ -14,6 +14,8 @@
 //Header Include Start and Header Include End
 //wxDev-C++ designer will remove them
 ////Header Include Start
+#include "Images/uncollageFrm_rightBtn_XPM.xpm"
+#include "Images/uncollageFrm_leftBtn_XPM.xpm"
 ////Header Include End
 
 //----------------------------------------------------------------------------
@@ -28,9 +30,12 @@ BEGIN_EVENT_TABLE(uncollageFrm,wxFrame)
 	
 	EVT_CLOSE(uncollageFrm::OnClose)
 	EVT_ACTIVATE(uncollageFrm::uncollageFrmActivate)
+	EVT_BUTTON(ID_RIGHTBTN,uncollageFrm::rightBtnClick)
+	EVT_BUTTON(ID_LEFTBTN,uncollageFrm::leftBtnClick)
+	EVT_BUTTON(ID_SAVEBTN,uncollageFrm::saveBtnClick)
 	EVT_BUTTON(ID_CLEARBTN,uncollageFrm::clearBtnClick)
 	EVT_BUTTON(ID_CROPBTN,uncollageFrm::cropBtnClick)
-	EVT_BUTTON(ID_UPLOADBTN,uncollageFrm::uploadBtnClick)
+	EVT_BUTTON(ID_LOADBTN,uncollageFrm::loadBtnClick)
 END_EVENT_TABLE()
 ////Event Table End
 
@@ -54,21 +59,36 @@ void uncollageFrm::CreateGUIControls()
 
 	wxInitAllImageHandlers();   //Initialize graphic format handlers
 
-	OpenFileDialog =  new wxFileDialog(this, _("Choose a file"), _(""), _(""), _("*.bmp;*gif;*.png;*.jpeg;*.xpm"), wxFD_OPEN);
-
 	SaveFileDialog =  new wxFileDialog(this, _("Choose a file"), _(""), _(""), _("*.*"), wxFD_SAVE);
 
-	previewText = new wxStaticText(this, ID_PREVIEWTEXT, _("Cropped Image Preview"), wxPoint(501, 323), wxDefaultSize, 0, _("previewText"));
+	OpenFileDialog =  new wxFileDialog(this, _("Choose a file"), _(""), _(""), _("*.bmp;*gif;*.png;*.jpeg;*.xpm"), wxFD_OPEN);
 
-	bitmapView = new wxStaticBitmap(this, ID_BITMAPVIEW, wxNullBitmap, wxPoint(467, 19), wxSize(300, 300) );
-	bitmapView->SetForegroundColour(wxColour(_("WHITE")));
+	wxBitmap rightBtn_BITMAP (uncollageFrm_rightBtn_XPM);
+	rightBtn = new wxBitmapButton(this, ID_RIGHTBTN, rightBtn_BITMAP, wxPoint(618, 321), wxSize(150, 50), wxBU_AUTODRAW, wxDefaultValidator, _("rightBtn"));
+	rightBtn->Enable(false);
+	rightBtn->SetBackgroundColour(wxColour(_("BLACK")));
+
+	wxBitmap leftBtn_BITMAP (uncollageFrm_leftBtn_XPM);
+	leftBtn = new wxBitmapButton(this, ID_LEFTBTN, leftBtn_BITMAP, wxPoint(465, 321), wxSize(150, 50), wxBU_AUTODRAW, wxDefaultValidator, _("leftBtn"));
+	leftBtn->Enable(false);
+	leftBtn->SetForegroundColour(wxColour(_("BLACK")));
+	leftBtn->SetBackgroundColour(wxColour(_("BLACK")));
+
+	uploadImgLabel = new wxStaticText(this, ID_UPLOADIMGLABEL, _(" Image Preview"), wxPoint(118, 1), wxDefaultSize, 0, _("uploadImgLabel"));
+
+	saveBtn = new wxButton(this, ID_SAVEBTN, _("Save"), wxPoint(543, 375), wxSize(150, 50), 0, wxDefaultValidator, _("saveBtn"));
+	saveBtn->Enable(false);
+
+	croppedImgLabel = new wxStaticText(this, ID_CROPPEDIMGLABEL, _("Cropped Image Preview"), wxPoint(559, 0), wxDefaultSize, 0, _("croppedImgLabel"));
+
+	bitmapView = new wxStaticBitmap(this, ID_BITMAPVIEW, wxNullBitmap, wxPoint(468, 19), wxSize(300, 300) );
 	bitmapView->SetBackgroundColour(wxColour(_("WHITE")));
 
 	clearBtn = new wxButton(this, ID_CLEARBTN, _("Clear"), wxPoint(97, 379), wxSize(150, 50), 0, wxDefaultValidator, _("clearBtn"));
 
-	cropBtn = new wxButton(this, ID_CROPBTN, _("Crop and Save"), wxPoint(177, 327), wxSize(150, 50), 0, wxDefaultValidator, _("cropBtn"));
+	cropBtn = new wxButton(this, ID_CROPBTN, _("Crop"), wxPoint(177, 327), wxSize(150, 50), 0, wxDefaultValidator, _("cropBtn"));
 
-	uploadBtn = new wxButton(this, ID_UPLOADBTN, _("Upload"), wxPoint(25, 327), wxSize(150, 50), 0, wxDefaultValidator, _("uploadBtn"));
+	loadBtn = new wxButton(this, ID_LOADBTN, _("Load Image"), wxPoint(19, 327), wxSize(150, 50), 0, wxDefaultValidator, _("loadBtn"));
 
 	bitmapDisplay = new wxStaticBitmap(this, ID_BITMAPDISPLAY, wxNullBitmap, wxPoint(25, 20), wxSize(300, 300) );
 	bitmapDisplay->SetForegroundColour(wxColour(_("WHITE")));
@@ -224,10 +244,123 @@ void cropHorizontalRecursion(
     }
 }
 
+
+void scaleImage(std::vector<wxImage>& images, wxImage& image, int i) {
+     
+
+    double fWScale = 1.0;   // horizontal scaling factor
+    double fHScale = 1.0;   // vertical scaling factor
+    int iImageH = -1;       // the bitmap's height
+    int iImageW = -1;       // the bitmap's width
+    int iThisH = 300;        // the panel's height
+    int iThisW = 300;        // the panel's width
+    int iNewH = 0;          // the bitmap's new height
+    int iNewW = 0;          // the bitmap's new width
+
+    iImageH = images[i].GetHeight();   
+    iImageW = images[i].GetWidth();
+    if( ( iThisH > 0 ) && ( iThisW > 0 ) )
+    {
+        fHScale = (double) iImageH / (double) iThisH;
+        fWScale = (double) iImageW / (double) iThisW;
+  
+        if(fHScale > fWScale)
+        {
+            fWScale = fHScale;
+        }
+        else
+        {
+            fHScale = fWScale;
+        }
+  
+        iNewH = (int) (((double) iImageH) / fHScale);
+        iNewW = (int) (((double) iImageW) / fWScale);
+    }
+        
+    image = images[i].Scale(iNewW, iNewH);
+     
+
+}
+
+
+
+
+
 /*
- * uploadBtnClick
+ * clearBtnClick
  */
-void uncollageFrm::uploadBtnClick(wxCommandEvent& event)
+void uncollageFrm::clearBtnClick(wxCommandEvent& event)
+{
+    croppedImgs.clear(); 
+    bitmapDisplay -> SetBitmap(wxNullBitmap);
+    bitmapView -> SetBitmap(wxNullBitmap);
+    saveBtn -> Enable(false); 
+    leftBtn->Enable(false);
+    rightBtn->Enable(false);
+}
+
+/*
+ * cropBtnClick
+ */              
+void uncollageFrm:: cropBtnClick(wxCommandEvent& event)
+{
+    
+    croppedImgs.clear(); 
+	unsigned char rBorder = Upload_Pic.GetRed(0,0);
+	unsigned char gBorder = Upload_Pic.GetGreen(0,0);
+	unsigned char bBorder = Upload_Pic.GetBlue(0,0);
+	saveBtn -> Enable(true); 
+	rightBtn -> Enable(true); 
+	leftBtn -> Enable(true); 
+    cropVerticalRecursion(Upload_Pic,croppedImgs, rBorder, gBorder, bBorder, true);
+    index=0;
+    scaleImage(croppedImgs,scaledImg,index);
+    bitmapView -> SetBitmap(wxNullBitmap);
+    bitmapView -> SetBitmap(scaledImg);
+
+    
+}
+
+/*
+ * uncollageFrmActivate
+ */
+void uncollageFrm::uncollageFrmActivate(wxActivateEvent& event)
+{
+	// insert your code here
+}
+
+/*
+ * saveBtnClick
+ */
+void uncollageFrm::saveBtnClick(wxCommandEvent& event)
+{
+    wxFileDialog *SaveFileDialog = new wxFileDialog(this, _("Save Image")
+    , _(""), _("")
+    , _("BMP file (*.bmp)|*.bmp|GIF file (*.gif)|*.gif|JPEG file (*.jpg)|*.jpg|PNG file (*.png)|*.png|TIFF file (*.tif)|*.tif")
+    , wxFD_SAVE);
+    if (SaveFileDialog->ShowModal() == wxID_OK)
+    {
+        wxString savePath = SaveFileDialog->GetPath();
+		wxImage currentImage = croppedImgs[index]; 
+		if (currentImage.IsOk())
+		{
+    		currentImage.SaveFile(savePath);
+        }
+    }
+    else 
+        {
+            SaveFileDialog->Close();
+        }
+    
+    SaveFileDialog->Destroy();
+
+ 
+}
+
+/*
+ * loadBtnClick
+ */
+void uncollageFrm::loadBtnClick(wxCommandEvent& event)
 {
     OpenFileDialog -> ShowModal();
     if (OpenFileDialog -> GetPath().IsEmpty())
@@ -241,84 +374,32 @@ void uncollageFrm::uploadBtnClick(wxCommandEvent& event)
     bitmapDisplay -> SetBitmap(img);
 }
 
+
 /*
- * clearBtnClick
+ * leftBtnClick
  */
-void uncollageFrm::clearBtnClick(wxCommandEvent& event)
-{
-    
-    bitmapDisplay -> SetBitmap(wxNullBitmap);
+void uncollageFrm::leftBtnClick(wxCommandEvent& event)
+{   
+
+    index--;
+    index = (index+croppedImgs.size()) % croppedImgs.size();
+    scaleImage(croppedImgs,scaledImg,index);
     bitmapView -> SetBitmap(wxNullBitmap);
+    bitmapView -> SetBitmap(scaledImg);
+
 }
 
 /*
- * cropBtnClick
- */              
-void uncollageFrm:: cropBtnClick(wxCommandEvent& event)
-{
-	std::vector<wxImage> croppedImgs; 
-	unsigned char rBorder = Upload_Pic.GetRed(0,0);
-	unsigned char gBorder = Upload_Pic.GetGreen(0,0);
-	unsigned char bBorder = Upload_Pic.GetBlue(0,0);
-	
-    cropVerticalRecursion(Upload_Pic,croppedImgs, rBorder, gBorder, bBorder, true);
-    wxFileDialog *SaveFileDialog = new wxFileDialog(this, _("Save Image"), _(""), _(""), _("BMP file (*.bmp)|*.bmp|GIF file (*.gif)|*.gif|JPEG file (*.jpg)|*.jpg|PNG file (*.png)|*.png|TIFF file (*.tif)|*.tif"), wxFD_SAVE);
-    for (int i = 0; i<croppedImgs.size(); i++)
-        {
-            float fWScale = 1.0f;   // horizontal scaling factor
-            float fHScale = 1.0f;   // vertical scaling factor
-            int iImageH = -1;       // the bitmap's height
-            int iImageW = -1;       // the bitmap's width
-            int iThisH = 300;        // the panel's height
-            int iThisW = 300;        // the panel's width
-            int iNewH = 0;          // the bitmap's new height
-            int iNewW = 0;          // the bitmap's new width
-
-            iImageH = croppedImgs[i].GetHeight();   
-            iImageW = croppedImgs[i].GetWidth();
-            if( ( iThisH > 0 ) && ( iThisW > 0 ) )
-            {
-                    fHScale = (float) iImageH / (float) iThisH;
-                    fWScale = (float) iImageW / (float) iThisW;
-  
-                if(fHScale > fWScale)
-                {
-                    fWScale = fHScale;
-                }
-                else
-                {
-                    fHScale = fWScale;
-                }
-  
-                iNewH = (int) (((float) iImageH) / fHScale);
-                iNewW = (int) (((float) iImageW) / fWScale);
-            }
-            
-            wxImage scaledImg = croppedImgs[i].Scale(iNewW, iNewH); 
-            bitmapView -> SetBitmap(wxNullBitmap);
-            bitmapView -> SetBitmap(scaledImg);
-            if (SaveFileDialog->ShowModal() == wxID_OK)
-            {
-                wxString savePath = SaveFileDialog->GetPath();
-		        wxImage currentImage = croppedImgs[i]; 
-		        if (currentImage.IsOk())
-		        {
-    		      currentImage.SaveFile(savePath);
-                }
-            }
-            else 
-            {
-                SaveFileDialog->Close();
-            }
-        }
-    
-    SaveFileDialog->Destroy();
-}
-
-/*
- * uncollageFrmActivate
+ * rightBtnClick
  */
-void uncollageFrm::uncollageFrmActivate(wxActivateEvent& event)
-{
-	// insert your code here
+void uncollageFrm::rightBtnClick(wxCommandEvent& event)
+{   
+    
+    index++;
+    index %= croppedImgs.size(); 
+    scaleImage(croppedImgs,scaledImg,index); 
+    bitmapView -> SetBitmap(wxNullBitmap);
+    bitmapView -> SetBitmap(im);
+
+
 }
