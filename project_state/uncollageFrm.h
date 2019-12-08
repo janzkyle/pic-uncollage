@@ -134,7 +134,7 @@ void cropVerticalRecursion(
 );
 void scaleImage (
     std::vector<wxImage>& images, 
-    wxImage &image, 
+    wxImage& image, 
     int i
 );
 

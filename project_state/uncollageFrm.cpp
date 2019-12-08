@@ -278,8 +278,6 @@ void scaleImage(std::vector<wxImage>& images, wxImage& image, int i) {
     }
         
     image = images[i].Scale(iNewW, iNewH);
-     
-
 }
 
 
@@ -353,8 +351,6 @@ void uncollageFrm::saveBtnClick(wxCommandEvent& event)
         }
     
     SaveFileDialog->Destroy();
-
- 
 }
 
 /*
@@ -380,13 +376,13 @@ void uncollageFrm::loadBtnClick(wxCommandEvent& event)
  */
 void uncollageFrm::leftBtnClick(wxCommandEvent& event)
 {   
-
     index--;
     index = (index+croppedImgs.size()) % croppedImgs.size();
     scaleImage(croppedImgs,scaledImg,index);
+    wxImage blankImg = wxImage(300,300,true);
+    bitmapView -> SetBitmap(blankImg);
     bitmapView -> SetBitmap(wxNullBitmap);
     bitmapView -> SetBitmap(scaledImg);
-
 }
 
 /*
@@ -394,12 +390,13 @@ void uncollageFrm::leftBtnClick(wxCommandEvent& event)
  */
 void uncollageFrm::rightBtnClick(wxCommandEvent& event)
 {   
-    
     index++;
-    index %= croppedImgs.size(); 
-    scaleImage(croppedImgs,scaledImg,index); 
+    index %= croppedImgs.size();
+    
+    wxImage scaledImg;
+    scaleImage(croppedImgs,scaledImg,index);
+    wxImage blankImg = wxImage(300,300,true);
+    bitmapView -> SetBitmap(blankImg);
     bitmapView -> SetBitmap(wxNullBitmap);
-    bitmapView -> SetBitmap(im);
-
-
+    bitmapView -> SetBitmap(scaledImg);
 }
